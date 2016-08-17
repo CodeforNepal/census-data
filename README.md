@@ -21,5 +21,7 @@ ROOF_TYPE.csv
 TOILET_TYPE.csv
 ```
 
+**districts_complete.csv**: Single file containg all the development parameters for all the districts.
+
 **Data Source:**
 National Population and Housing Census (PDF), 2011
