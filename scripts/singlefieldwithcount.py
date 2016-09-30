@@ -79,7 +79,7 @@ def convertcsv(districtsdir, outputfile, fieldname, csvname):
 
     with open(outputfile, 'w') as csvout:
         fieldnames = ['geo_code', 'geo_level',
-                      'main type of cooking fuel', 'total']
+                      fieldname, 'total']
         writer = csv.DictWriter(csvout, fieldnames=fieldnames)
         writer.writeheader()
         for row in all_rows:
