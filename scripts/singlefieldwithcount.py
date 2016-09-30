@@ -32,50 +32,48 @@ names_to_geo_ids = {
     'Dolakha': '17', 'Jajarkot': '62', 'Mahottari': '21',
     'Kavre': '24', 'Gorkha': '36'
 }
-    
 
-def cookingfuelcsv(districtsdir, outputfile):
 
+def convertcsv(districtsdir, outputfile, fieldname, csvname):
     def get_immediate_subdirectories(a_dir):
         return [name for name in os.listdir(a_dir)
                 if os.path.isdir(os.path.join(a_dir, name))]
 
     def build_csv_location(districtname):
         return '{}/{}/{}'.format(districtsdir,
-                                 districtname,
-                                 'COOKING_FUEL.csv')
+                                 districtname, csvname)
 
     csvfilenames = list(map(build_csv_location,
                             get_immediate_subdirectories(districtsdir)))
 
     all_rows = []
     national_totals = {}
-    for cookingfile in csvfilenames:
-        district_geoid = names_to_geo_ids[cookingfile.split('/')[-2]]
-        with open(cookingfile, 'r') as cooking:
-            all = cooking.readlines()
+    for csvfile in csvfilenames:
+        district_geoid = names_to_geo_ids[csvfile.split('/')[-2]]
+        with open(csvfile, 'r') as data:
+            all = data.readlines()
             headers = all[0].split(',')[1:]
             totals = all[len(all) - 1].split(',')[1:]
 
             for idx, header in enumerate(headers):
-                fuel_name = header.strip(' \t\n\r')
+                value_name = header.strip(' \t\n\r')
                 district_total = int(totals[idx].strip(' \t\n\r'))
                 all_rows.append({
                     'geo_level': 'district',
                     'geo_code': district_geoid,
-                    'main type of cooking fuel': fuel_name,
+                    fieldname: value_name,
                     'total': district_total
                 })
-                if fuel_name in national_totals:
-                    national_totals[fuel_name] += district_total
+                if value_name in national_totals:
+                    national_totals[value_name] += district_total
                 else:
-                    national_totals[fuel_name] = district_total
+                    national_totals[value_name] = district_total
 
     for key, value in national_totals.items():
         all_rows.append({
             'geo_level': 'country',
             'geo_code': 'NP',
-            'main type of cooking fuel': key,
+            fieldname: key,
             'total': value
         })
 
@@ -93,21 +91,31 @@ def cookingfuelcsv(districtsdir, outputfile):
 def main(args):
     indir = ''
     outputcsv = ''
+    fieldname = ''
+    csvname = ''
     try:
-        opts, args = getopt.getopt(args, 'hi:o:', ['indir=', 'outputcsv='])
+        opts, args = getopt.getopt(args, 'hi:o:f:c:',
+                                   ['indir=', 'outputcsv=',
+                                    'fieldname=', 'csvname='])
     except getopt.GetoptError:
-        print('python districtnames.py -i <indir> -o <outputcsv>')
+        print('python districtnames.py -i <indir> -o <outputcsv> '
+              '-f <fieldname> -c <csvname>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print('python districtnames.py -i <indir>  -o <outputcsv>')
+            print('python districtnames.py -i <indir> -o <outputcsv> '
+                  '-f <fieldname> -c <csvname>')
             sys.exit()
         elif opt in ('-i', '--indir'):
             indir = arg
         elif opt in ('-o', '--outputcsv'):
             outputcsv = arg
+        elif opt in ('-f', '--fieldname'):
+            fieldname = arg
+        elif opt in ('-c', '--csvname'):
+            csvname = arg
 
-    cookingfuelcsv(indir, outputcsv)
+    convertcsv(indir, outputcsv, fieldname, csvname)
 
 
 if __name__ == '__main__':
